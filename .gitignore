@@ -1,0 +1,16 @@
+# macOS
+.DS_Store
+
+# Node
+node_modules
+dist
+.env
+
+# Go
+bin/
+*.exe
+*.test
+
+# Editor
+.vscode/
+.idea/
