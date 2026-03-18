@@ -6,7 +6,6 @@ html,
 body {
   margin: 0;
   padding: 0;
-  background: #f7f8fa;
   color: #111827;
   font-family:
     Arial,
@@ -14,6 +13,10 @@ body {
     "Hiragino Kaku Gothic ProN",
     Meiryo,
     sans-serif;
+  background:
+    radial-gradient(circle at top left, #eef4ff 0%, transparent 35%),
+    radial-gradient(circle at top right, #fdf2f8 0%, transparent 30%),
+    linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
 }
 
 body {
@@ -21,7 +24,9 @@ body {
 }
 
 input,
-button {
+button,
+textarea,
+select {
   font: inherit;
 }
 
@@ -30,30 +35,43 @@ button {
 }
 
 .page {
-  max-width: 720px;
+  max-width: 760px;
   margin: 0 auto;
-  padding: 24px 16px 48px;
+  padding: 28px 16px 56px;
+  animation: pageFadeIn 0.7s ease;
 }
 
 .pageTitle {
   margin: 0 0 8px;
-  font-size: 28px;
-  font-weight: 700;
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #111827;
 }
 
 .pageDescription {
   margin: 0 0 24px;
   font-size: 14px;
-  line-height: 1.6;
+  line-height: 1.7;
   color: #6b7280;
+}
+
+.createSection,
+.taskSection {
+  animation: softRise 0.7s ease both;
 }
 
 .createSection {
   margin-bottom: 32px;
-  padding: 16px;
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 16px;
+  padding: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow:
+    0 10px 30px rgba(15, 23, 42, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
 }
 
 .taskForm {
@@ -62,27 +80,52 @@ button {
   gap: 12px;
 }
 
-.taskInput {
+.taskInput,
+.modalInput,
+.modalSelect,
+.modalTextarea {
   width: 100%;
   padding: 14px 16px;
-  border: 1px solid #d1d5db;
-  border-radius: 12px;
-  background: #fff;
+  border: 1px solid #dbe3f0;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.92);
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
 }
 
-.taskInput:focus {
+.taskInput:focus,
+.modalInput:focus,
+.modalSelect:focus,
+.modalTextarea:focus {
   outline: none;
-  border-color: #111827;
+  border-color: #8b5cf6;
+  box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.12);
 }
 
 .taskButton {
   width: 100%;
   padding: 14px 16px;
   border: none;
-  border-radius: 12px;
-  background: #111827;
-  color: #ffffff;
+  border-radius: 14px;
+  color: #fff;
   font-weight: 700;
+  background: linear-gradient(135deg, #111827 0%, #374151 100%);
+  box-shadow: 0 8px 20px rgba(17, 24, 39, 0.18);
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    opacity 0.18s ease;
+}
+
+.taskButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 24px rgba(17, 24, 39, 0.22);
+}
+
+.taskButton:active {
+  transform: translateY(0);
 }
 
 .taskSection {
@@ -92,7 +135,9 @@ button {
 .sectionTitle {
   margin: 0 0 16px;
   font-size: 22px;
-  font-weight: 700;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #1f2937;
 }
 
 .taskList {
@@ -100,66 +145,9 @@ button {
   margin: 0;
   padding: 0;
   display: grid;
-  gap: 12px;
+  gap: 14px;
 }
 
-.taskCard {
-  padding: 16px;
-  border: 1px solid #e5e7eb;
-  border-radius: 14px;
-  background: #ffffff;
-}
-
-.completedTaskCard {
-  background: #f3f4f6;
-  opacity: 0.85;
-}
-
-.taskTitle {
-  margin-bottom: 8px;
-  font-size: 16px;
-  font-weight: 700;
-  line-height: 1.5;
-  word-break: break-word;
-}
-
-.taskMeta {
-  font-size: 13px;
-  color: #6b7280;
-}
-
-.emptyState {
-  padding: 16px;
-  border: 1px solid #e5e7eb;
-  border-radius: 14px;
-  background: #fafafa;
-  color: #6b7280;
-}
-
-/* PC幅では入力欄とボタンを横並び */
-@media (min-width: 640px) {
-  .taskForm {
-    flex-direction: row;
-    align-items: center;
-  }
-
-  .taskInput {
-    flex: 1;
-  }
-
-  .taskButton {
-    width: auto;
-    min-width: 140px;
-  }
-
-  .page {
-    padding-top: 40px;
-  }
-
-  .pageTitle {
-    font-size: 32px;
-  }
-}
 .taskCardButton {
   display: block;
   width: 100%;
@@ -169,10 +157,76 @@ button {
   text-align: left;
 }
 
-.taskCardButton:hover .taskCard {
-  border-color: #cbd5e1;
+/* カード本体 */
+.taskCard {
+  position: relative;
+  overflow: hidden;
+  padding: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow:
+    0 10px 24px rgba(15, 23, 42, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  transition:
+    transform 0.22s ease,
+    box-shadow 0.22s ease,
+    border-color 0.22s ease;
+  animation: softCardIn 0.7s ease both;
 }
 
+/* カード上部の薄い光 */
+.taskCard::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -20%;
+  width: 70%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.95), transparent);
+}
+
+/* hoverで少し浮く */
+.taskCardButton:hover .taskCard {
+  transform: translateY(-3px) scale(1.01);
+  box-shadow:
+    0 16px 32px rgba(15, 23, 42, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95);
+  border-color: rgba(255, 255, 255, 0.95);
+}
+
+.completedTaskCard {
+  background: rgba(243, 244, 246, 0.82);
+  opacity: 0.95;
+}
+
+.taskTitle {
+  margin-bottom: 8px;
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1.5;
+  word-break: break-word;
+  color: #111827;
+}
+
+.taskMeta {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.emptyState {
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  color: #6b7280;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+}
+
+/* モーダル */
 .modalOverlay {
   position: fixed;
   inset: 0;
@@ -181,7 +235,10 @@ button {
   align-items: flex-end;
   justify-content: center;
   padding: 16px;
-  background: rgba(17, 24, 39, 0.45);
+  background: rgba(15, 23, 42, 0.35);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  animation: fadeIn 0.2s ease;
 }
 
 .modalCard {
@@ -189,22 +246,24 @@ button {
   max-width: 560px;
   max-height: 90vh;
   overflow-y: auto;
-  border-radius: 20px;
-  background: #ffffff;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.18);
+  animation: modalIn 0.24s ease;
 }
 
 .modalHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 16px 0;
+  padding: 18px 18px 0;
 }
 
 .modalTitle {
   margin: 0;
   font-size: 20px;
-  font-weight: 700;
+  font-weight: 800;
 }
 
 .modalCloseButton {
@@ -216,14 +275,14 @@ button {
 }
 
 .modalBody {
-  padding: 16px;
+  padding: 18px;
 }
 
 .modalFooter {
   display: flex;
   gap: 12px;
   justify-content: flex-end;
-  padding: 0 16px 16px;
+  padding: 0 18px 18px;
 }
 
 .fieldBlock {
@@ -238,20 +297,17 @@ button {
   color: #6b7280;
 }
 
-.modalInput,
-.modalSelect {
-  width: 100%;
-  padding: 12px 14px;
-  border: 1px solid #d1d5db;
-  border-radius: 12px;
-  background: #fff;
+.modalTextarea {
+  resize: vertical;
+  min-height: 130px;
+  line-height: 1.7;
 }
 
 .readonlyValue {
   padding: 12px 14px;
   border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  background: #f9fafb;
+  border-radius: 14px;
+  background: rgba(249, 250, 251, 0.92);
   color: #111827;
   line-height: 1.6;
   word-break: break-word;
@@ -260,8 +316,8 @@ button {
 .secondaryButton {
   padding: 14px 16px;
   border: 1px solid #d1d5db;
-  border-radius: 12px;
-  background: #fff;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.85);
   color: #111827;
   font-weight: 700;
 }
@@ -272,32 +328,101 @@ button {
   color: #dc2626;
 }
 
+/* カードが順番にホワンと出る */
+.taskList li:nth-child(1) .taskCard { animation-delay: 0.04s; }
+.taskList li:nth-child(2) .taskCard { animation-delay: 0.08s; }
+.taskList li:nth-child(3) .taskCard { animation-delay: 0.12s; }
+.taskList li:nth-child(4) .taskCard { animation-delay: 0.16s; }
+.taskList li:nth-child(5) .taskCard { animation-delay: 0.20s; }
+.taskList li:nth-child(6) .taskCard { animation-delay: 0.24s; }
+.taskList li:nth-child(7) .taskCard { animation-delay: 0.28s; }
+.taskList li:nth-child(8) .taskCard { animation-delay: 0.32s; }
+
+@keyframes pageFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes softRise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes softCardIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.985);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes modalIn {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 @media (min-width: 640px) {
+  .page {
+    padding-top: 40px;
+  }
+
+  .pageTitle {
+    font-size: 36px;
+  }
+
+  .taskForm {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .taskInput {
+    flex: 1;
+  }
+
+  .taskButton {
+    width: auto;
+    min-width: 140px;
+  }
+
   .modalOverlay {
     align-items: center;
   }
-}
-.modalTextarea {
-  width: 100%;
-  padding: 12px 14px;
-  border: 1px solid #d1d5db;
-  border-radius: 12px;
-  background: #fff;
-  resize: vertical;
-  font: inherit;
 
-  /* 👇 スマホ用 */
-  min-height: 120px;
-}
-
-/* 👇 タブレット以上 */
-@media (min-width: 640px) {
   .modalTextarea {
     min-height: 180px;
   }
 }
 
-/* 👇 PC（広め） */
 @media (min-width: 1024px) {
   .modalTextarea {
     min-height: 240px;
