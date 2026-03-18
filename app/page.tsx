@@ -1,7 +1,8 @@
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
+import TaskBoard from "@/app/components/task-board";
 
-type Task = {
+export type Task = {
     id: number;
     title: string;
     detail: string | null;
@@ -15,9 +16,7 @@ async function createTask(formData: FormData) {
 
     const title = String(formData.get("title") ?? "").trim();
 
-    if (!title) {
-        return;
-    }
+    if (!title) return;
 
     const now = new Date().toISOString();
 
@@ -28,120 +27,68 @@ async function createTask(formData: FormData) {
 
     stmt.run(title, "", "uncomplete", now, now);
 
+    // これを入れる
     revalidatePath("/");
 }
 
-export default async function Home() {
-    const uncompletedStmt = db.prepare(`
-    SELECT id, title, detail, status, updated_at, created_at
-    FROM task
-    WHERE status != ?
-    ORDER BY created_at DESC
-  `);
+function toTask(row: any): Task {
+    return {
+        id: Number(row.id),
+        title: String(row.title ?? ""),
+        detail: row.detail == null ? null : String(row.detail),
+        status: String(row.status ?? ""),
+        updated_at: String(row.updated_at ?? ""),
+        created_at: String(row.created_at ?? ""),
+    };
+}
 
-    const completedStmt = db.prepare(`
-    SELECT id, title, detail, status, updated_at, created_at
-    FROM task
-    WHERE status = ?
-    ORDER BY created_at DESC
-  `);
+export default function Home() {
+    const uncompletedRows = db
+        .prepare(`
+      SELECT id, title, detail, status, updated_at, created_at
+      FROM task
+      WHERE status != ?
+      ORDER BY created_at DESC
+    `)
+        .all("complete");
 
-    const uncompletedTasks = uncompletedStmt.all("complete") as Task[];
-    const completedTasks = completedStmt.all("complete") as Task[];
+    const completedRows = db
+        .prepare(`
+      SELECT id, title, detail, status, updated_at, created_at
+      FROM task
+      WHERE status = ?
+      ORDER BY created_at DESC
+    `)
+        .all("complete");
+
+    const uncompletedTasks = uncompletedRows.map(toTask);
+    const completedTasks = completedRows.map(toTask);
 
     return (
-        <main style={{ maxWidth: 720, margin: "40px auto", padding: "0 16px" }}>
-            <h1 style={{ fontSize: "32px", fontWeight: "bold", marginBottom: "24px" }}>
-                Growry
-            </h1>
+        <main className="page">
+            <h1 className="pageTitle">Growry</h1>
+            <p className="pageDescription">
+                タイトルを入力して新規作成すると、未完了タスクとして保存されます。
+            </p>
 
-            <section style={{ marginBottom: "32px" }}>
-                <form action={createTask} style={{ display: "flex", gap: "8px" }}>
+            <section className="createSection">
+                <form action={createTask} className="taskForm">
                     <input
                         type="text"
                         name="title"
                         placeholder="Todoタイトルを入力"
-                        style={{
-                            flex: 1,
-                            padding: "12px",
-                            border: "1px solid #ccc",
-                            borderRadius: "8px",
-                        }}
+                        className="taskInput"
                     />
-                    <button
-                        type="submit"
-                        style={{
-                            padding: "12px 16px",
-                            border: "none",
-                            borderRadius: "8px",
-                            cursor: "pointer",
-                        }}
-                    >
+                    <button type="submit" className="taskButton">
                         新規作成
                     </button>
                 </form>
-
-                <p style={{ marginTop: "8px", fontSize: "14px", color: "#666" }}>
-                    タイトルを入力して新規作成すると、未完了タスクとして保存されます。
-                </p>
             </section>
 
-            <section style={{ marginBottom: "40px" }}>
-                <h2 style={{ fontSize: "24px", fontWeight: "bold", marginBottom: "16px" }}>
-                    未完了タスク
-                </h2>
-
-                {uncompletedTasks.length === 0 ? (
-                    <p style={{ color: "#666" }}>未完了タスクはありません。</p>
-                ) : (
-                    <ul style={{ listStyle: "none", padding: 0, display: "grid", gap: "12px" }}>
-                        {uncompletedTasks.map((task) => (
-                            <li
-                                key={task.id}
-                                style={{
-                                    border: "1px solid #ddd",
-                                    borderRadius: "10px",
-                                    padding: "14px",
-                                }}
-                            >
-                                <div style={{ fontWeight: "bold", marginBottom: "6px" }}>{task.title}</div>
-                                <div style={{ fontSize: "13px", color: "#666" }}>
-                                    status: {task.status}
-                                </div>
-                            </li>
-                        ))}
-                    </ul>
-                )}
-            </section>
-
-            <section>
-                <h2 style={{ fontSize: "24px", fontWeight: "bold", marginBottom: "16px" }}>
-                    完了タスク
-                </h2>
-
-                {completedTasks.length === 0 ? (
-                    <p style={{ color: "#666" }}>完了タスクはありません。</p>
-                ) : (
-                    <ul style={{ listStyle: "none", padding: 0, display: "grid", gap: "12px" }}>
-                        {completedTasks.map((task) => (
-                            <li
-                                key={task.id}
-                                style={{
-                                    border: "1px solid #ddd",
-                                    borderRadius: "10px",
-                                    padding: "14px",
-                                    opacity: 0.8,
-                                }}
-                            >
-                                <div style={{ fontWeight: "bold", marginBottom: "6px" }}>{task.title}</div>
-                                <div style={{ fontSize: "13px", color: "#666" }}>
-                                    status: {task.status}
-                                </div>
-                            </li>
-                        ))}
-                    </ul>
-                )}
-            </section>
+            <TaskBoard
+                uncompletedTasks={uncompletedTasks}
+                completedTasks={completedTasks}
+            />
         </main>
     );
 }
