@@ -61,19 +61,16 @@ export default function TaskBoard({
                 }),
             });
 
+            const contentType = response.headers.get("content-type");
             let data: any = null;
 
-            try {
+            if (contentType?.includes("application/json")) {
                 data = await response.json();
-            } catch {
-                data = null;
             }
 
             if (!response.ok) {
                 setMessage(
-                    data?.error ??
-                    data?.message ??
-                    `更新に失敗しました。status: ${response.status}`
+                    data?.error ?? `更新に失敗しました。status: ${response.status}`
                 );
                 return;
             }
