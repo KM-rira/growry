@@ -38,14 +38,14 @@ export async function PUT(
         const now = new Date().toISOString();
 
         const stmt = db.prepare(`
-      UPDATE task
-      SET
-        title = ?,
-        detail = ?,
-        status = ?,
-        updated_at = ?
-      WHERE id = ?
-    `);
+            UPDATE task
+            SET
+                title = ?,
+                detail = ?,
+                status = ?,
+                updated_at = ?
+            WHERE id = ?
+        `);
 
         const result = stmt.run(title, detail, status, now, taskId) as {
             changes?: number;
@@ -61,9 +61,15 @@ export async function PUT(
         return NextResponse.json({
             message: "更新しました。",
         });
-    } catch {
+    } catch (error) {
+        console.error("PUT /api/tasks/[id] error:", error);
+
         return NextResponse.json(
-            { error: "更新処理でエラーが発生しました。" },
+            {
+                error: error instanceof Error
+                    ? `更新処理でエラーが発生しました: ${error.message}`
+                    : "更新処理で不明なエラーが発生しました。",
+            },
             { status: 500 }
         );
     }

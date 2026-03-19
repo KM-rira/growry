@@ -61,17 +61,31 @@ export default function TaskBoard({
                 }),
             });
 
-            const data = await response.json();
+            let data: any = null;
+
+            try {
+                data = await response.json();
+            } catch {
+                data = null;
+            }
 
             if (!response.ok) {
-                setMessage(data.error ?? "更新に失敗しました。");
+                setMessage(
+                    data?.error ??
+                    data?.message ??
+                    `更新に失敗しました。status: ${response.status}`
+                );
                 return;
             }
 
             closeModal();
             router.refresh();
-        } catch {
-            setMessage("更新中にエラーが発生しました。");
+        } catch (error) {
+            if (error instanceof Error) {
+                setMessage(`更新中にエラーが発生しました: ${error.message}`);
+            } else {
+                setMessage("更新中に不明なエラーが発生しました。");
+            }
         } finally {
             setIsSubmitting(false);
         }
