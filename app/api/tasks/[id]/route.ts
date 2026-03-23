@@ -35,7 +35,6 @@ export async function PUT(
             );
         }
 
-        const now = new Date().toISOString();
 
         const stmt = db.prepare(`
             UPDATE task
@@ -43,13 +42,27 @@ export async function PUT(
                 title = ?,
                 detail = ?,
                 status = ?,
-                updated_at = ?
+                updated_at = ?,
+                completed_at = ?
             WHERE id = ?
         `);
+        const now = new Date().toLocaleString("ja-JP", {
+            timeZone: "Asia/Tokyo",
+        });
+        let completedAt = null;
+        if (status === "complete") {
+            completedAt = now;
+        }
+        const updatedAt = now;
+        const result = stmt.run(
+            title,
+            detail,
+            status,
+            updatedAt,
+            completedAt,
+            taskId
+        );
 
-        const result = stmt.run(title, detail, status, now, taskId) as {
-            changes?: number;
-        };
 
         if ((result.changes ?? 0) === 0) {
             return NextResponse.json(

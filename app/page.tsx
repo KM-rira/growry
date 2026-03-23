@@ -11,6 +11,7 @@ export type Task = {
     status: string;
     updated_at: string;
     created_at: string;
+    completed_at: string | null;
 };
 
 async function createTask(formData: FormData) {
@@ -19,12 +20,14 @@ async function createTask(formData: FormData) {
     const title = String(formData.get("title") ?? "").trim();
     if (!title) return;
 
-    const now = new Date().toISOString();
+    const now = new Date().toLocaleString("ja-JP", {
+        timeZone: "Asia/Tokyo",
+    });
 
     db.prepare(`
-      INSERT INTO task (title, detail, status, updated_at, created_at)
-      VALUES (?, ?, ?, ?, ?)
-    `).run(title, "", "uncomplete", now, now);
+      INSERT INTO task (title, detail, status, updated_at, created_at, completed_at)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `).run(title, "", "uncomplete", now, now, null);
 
     revalidatePath("/growry");
 }
@@ -37,6 +40,7 @@ function toTask(row: any): Task {
         status: String(row.status ?? ""),
         updated_at: String(row.updated_at ?? ""),
         created_at: String(row.created_at ?? ""),
+        completed_at: String(row.completed_at ?? ""),
     };
 }
 
@@ -44,14 +48,14 @@ export default function Home() {
     console.log("PAGE DB READ");
 
     const uncompletedRows = db.prepare(`
-      SELECT id, title, detail, status, updated_at, created_at
+      SELECT id, title, detail, status, updated_at, created_at, completed_at
       FROM task
       WHERE status != ?
       ORDER BY created_at DESC
     `).all("complete");
 
     const completedRows = db.prepare(`
-      SELECT id, title, detail, status, updated_at, created_at
+      SELECT id, title, detail, status, updated_at, created_at, completed_at
       FROM task
       WHERE status = ?
       ORDER BY created_at DESC

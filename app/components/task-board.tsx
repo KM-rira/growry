@@ -212,6 +212,11 @@ export default function TaskBoard({
                                 <div className="readonlyValue">{selectedTask.created_at}</div>
                             </div>
 
+                            <div className="fieldBlock">
+                                <div className="fieldLabel">Completed At</div>
+                                <div className="readonlyValue">{selectedTask.completed_at}</div>
+                            </div>
+
                             {message && <p className="formMessage">{message}</p>}
                         </div>
 

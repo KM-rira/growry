@@ -22,6 +22,7 @@ db.exec(`
     detail TEXT,
     status TEXT NOT NULL DEFAULT 'uncomplete',
     updated_at TEXT NOT NULL,
-    created_at TEXT NOT NULL
+    created_at TEXT NOT NULL,
+    completed_at TEXT
   )
 `);
