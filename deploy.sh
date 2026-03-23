@@ -26,13 +26,22 @@ bun run build
 
 ssh -i "$SSH_KEY_PATH" "$TARGET_INSTANCE" "mkdir -p $TARGET_DIR/.next/static $TARGET_DIR/public"
 
-rsync -avz --delete -e "ssh -i $SSH_KEY_PATH" .next/standalone/ "$TARGET_INSTANCE:$TARGET_DIR/"
-rsync -avz --delete -e "ssh -i $SSH_KEY_PATH" .next/static/ "$TARGET_INSTANCE:$TARGET_DIR/.next/static/"
+rsync -avz --delete \
+  --exclude='db/' \
+  --exclude='*.sqlite' \
+  --exclude='*.db' \
+  -e "ssh -i $SSH_KEY_PATH" \
+  .next/standalone/ "$TARGET_INSTANCE:$TARGET_DIR/"
+
+rsync -avz --delete -e "ssh -i $SSH_KEY_PATH" \
+  .next/static/ "$TARGET_INSTANCE:$TARGET_DIR/.next/static/"
 
 if [ -d public ]; then
-  rsync -avz --delete -e "ssh -i $SSH_KEY_PATH" public/ "$TARGET_INSTANCE:$TARGET_DIR/public/"
+  rsync -avz --delete -e "ssh -i $SSH_KEY_PATH" \
+    public/ "$TARGET_INSTANCE:$TARGET_DIR/public/"
 fi
 
-ssh -i "$SSH_KEY_PATH" "$TARGET_INSTANCE" "sudo systemctl restart growry && sudo systemctl status growry --no-pager"
+ssh -i "$SSH_KEY_PATH" "$TARGET_INSTANCE" \
+  "sudo systemctl restart growry && sudo systemctl status growry --no-pager"
 
 echo "✅ deploy done"

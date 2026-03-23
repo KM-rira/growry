@@ -36,6 +36,8 @@ export default function TaskBoard({
     }
 
     async function handleUpdate() {
+        console.log("handleUpdate clicked");
+        console.log("selectedTask:", selectedTask);
         if (!selectedTask) return;
 
         const trimmedTitle = editTitle.trim();
@@ -49,6 +51,7 @@ export default function TaskBoard({
         setMessage("");
 
         try {
+            console.log("before fetch");
             const response = await fetch(`/growry/api/tasks/${selectedTask.id}`, {
                 method: "PUT",
                 headers: {
@@ -74,10 +77,11 @@ export default function TaskBoard({
                 );
                 return;
             }
-
+            console.log("after fetch:", response.status, response.statusText);
             closeModal();
             router.refresh();
         } catch (error) {
+            console.error("handleUpdate error:", error);
             if (error instanceof Error) {
                 setMessage(`更新中にエラーが発生しました: ${error.message}`);
             } else {

@@ -2,6 +2,8 @@ import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import TaskBoard from "@/app/components/task-board";
 
+export const dynamic = "force-dynamic";
+
 export type Task = {
     id: number;
     title: string;
@@ -15,20 +17,16 @@ async function createTask(formData: FormData) {
     "use server";
 
     const title = String(formData.get("title") ?? "").trim();
-
     if (!title) return;
 
     const now = new Date().toISOString();
 
-    const stmt = db.prepare(`
-    INSERT INTO task (title, detail, status, updated_at, created_at)
-    VALUES (?, ?, ?, ?, ?)
-  `);
+    db.prepare(`
+      INSERT INTO task (title, detail, status, updated_at, created_at)
+      VALUES (?, ?, ?, ?, ?)
+    `).run(title, "", "uncomplete", now, now);
 
-    stmt.run(title, "", "uncomplete", now, now);
-
-    // これを入れる
-    revalidatePath("/");
+    revalidatePath("/growry");
 }
 
 function toTask(row: any): Task {
@@ -43,23 +41,21 @@ function toTask(row: any): Task {
 }
 
 export default function Home() {
-    const uncompletedRows = db
-        .prepare(`
+    console.log("PAGE DB READ");
+
+    const uncompletedRows = db.prepare(`
       SELECT id, title, detail, status, updated_at, created_at
       FROM task
       WHERE status != ?
       ORDER BY created_at DESC
-    `)
-        .all("complete");
+    `).all("complete");
 
-    const completedRows = db
-        .prepare(`
+    const completedRows = db.prepare(`
       SELECT id, title, detail, status, updated_at, created_at
       FROM task
       WHERE status = ?
       ORDER BY created_at DESC
-    `)
-        .all("complete");
+    `).all("complete");
 
     const uncompletedTasks = uncompletedRows.map(toTask);
     const completedTasks = completedRows.map(toTask);

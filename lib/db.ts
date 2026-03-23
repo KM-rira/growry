@@ -9,6 +9,7 @@ if (!fs.existsSync(dbDir)) {
 }
 
 const dbPath = path.join(dbDir, "growry.sqlite");
+console.log("DB PATH:", dbPath);
 
 // Node標準のSQLite接続
 export const db = new DatabaseSync(dbPath);
