@@ -49,7 +49,7 @@ export default function TaskBoard({
         setMessage("");
 
         try {
-            const response = await fetch(`/api/tasks/${selectedTask.id}`, {
+            const response = await fetch(`/growry/api/tasks/${selectedTask.id}`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",

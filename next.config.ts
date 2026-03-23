@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
     output: "standalone",
-    basePath: "",
+    basePath: "/growry",
 };
 
 export default nextConfig;
