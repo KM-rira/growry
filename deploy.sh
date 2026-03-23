@@ -45,3 +45,4 @@ ssh -i "$SSH_KEY_PATH" "$TARGET_INSTANCE" \
   "sudo systemctl restart growry && sudo systemctl status growry --no-pager"
 
 echo "✅ deploy done"
+echo "${MY_DOMAIN_URL}/growry/"
