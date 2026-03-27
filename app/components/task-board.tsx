@@ -19,7 +19,8 @@ export default function TaskBoard({
     const [editTitle, setEditTitle] = useState("");
     const [editDetail, setEditDetail] = useState("");
     const [editStatus, setEditStatus] = useState("uncomplete");
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isUpdateSubmitting, setIsUpdateSubmitting] = useState(false);
+    const [isDeleteSubmitting, setIsDeleteSubmitting] = useState(false);
     const [message, setMessage] = useState("");
 
     function openModal(task: Task) {
@@ -47,7 +48,7 @@ export default function TaskBoard({
             return;
         }
 
-        setIsSubmitting(true);
+        setIsUpdateSubmitting(true);
         setMessage("");
 
         try {
@@ -88,7 +89,57 @@ export default function TaskBoard({
                 setMessage("更新中に不明なエラーが発生しました。");
             }
         } finally {
-            setIsSubmitting(false);
+            setIsUpdateSubmitting(false);
+        }
+    }
+
+
+    async function handleDelete() {
+        console.log("handleDelete clicked");
+        console.log("selectedTask:", selectedTask);
+        if (!selectedTask) return;
+
+        const trimmedTitle = editTitle.trim();
+
+        if (!trimmedTitle) {
+            setMessage("タイトルを入力してください。");
+            return;
+        }
+
+        setIsUpdateSubmitting(true);
+        setMessage("");
+
+        try {
+            console.log("before fetch");
+            const response = await fetch(`/growry/api/tasks/${selectedTask.id}`, {
+                method: "DELETE",
+            });
+
+            const contentType = response.headers.get("content-type");
+            let data: any = null;
+
+            if (contentType?.includes("application/json")) {
+                data = await response.json();
+            }
+
+            if (!response.ok) {
+                setMessage(
+                    data?.error ?? `削除に失敗しました。status: ${response.status}`
+                );
+                return;
+            }
+            console.log("after fetch:", response.status, response.statusText);
+            closeModal();
+            router.refresh();
+        } catch (error) {
+            console.error("handleUpdate error:", error);
+            if (error instanceof Error) {
+                setMessage(`削除中にエラーが発生しました: ${error.message}`);
+            } else {
+                setMessage("削除中に不明なエラーが発生しました。");
+            }
+        } finally {
+            setIsDeleteSubmitting(false);
         }
     }
 
@@ -225,17 +276,25 @@ export default function TaskBoard({
                                 type="button"
                                 className="secondaryButton"
                                 onClick={closeModal}
-                                disabled={isSubmitting}
+                                disabled={isUpdateSubmitting}
                             >
                                 閉じる
                             </button>
                             <button
                                 type="button"
                                 className="taskButton"
-                                onClick={handleUpdate}
-                                disabled={isSubmitting}
+                                onClick={handleDelete}
+                                disabled={isUpdateSubmitting}
                             >
-                                {isSubmitting ? "更新中..." : "更新"}
+                                {isUpdateSubmitting ? "削除中..." : "削除"}
+                            </button>
+                            <button
+                                type="button"
+                                className="taskButton"
+                                onClick={handleUpdate}
+                                disabled={isUpdateSubmitting}
+                            >
+                                {isUpdateSubmitting ? "更新中..." : "更新"}
                             </button>
                         </div>
                     </div>

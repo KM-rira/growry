@@ -66,7 +66,7 @@ export async function PUT(
 
         if ((result.changes ?? 0) === 0) {
             return NextResponse.json(
-                { error: "対象のタスクが見つかりませんでした。" },
+                { error: "更新対象のタスクが見つかりませんでした。" },
                 { status: 404 }
             );
         }
@@ -76,6 +76,55 @@ export async function PUT(
         });
     } catch (error) {
         console.error("PUT /api/tasks/[id] error:", error);
+
+        return NextResponse.json(
+            {
+                error: error instanceof Error
+                    ? `更新処理でエラーが発生しました: ${error.message}`
+                    : "更新処理で不明なエラーが発生しました。",
+            },
+            { status: 500 }
+        );
+    }
+}
+
+
+export async function DELETE(
+    request: NextRequest,
+    context: { params: Promise<{ id: string }> }
+) {
+    try {
+        const { id } = await context.params;
+        const taskId = Number(id);
+
+        if (!Number.isInteger(taskId) || taskId <= 0) {
+            return NextResponse.json(
+                { error: "不正なtask idです。" },
+                { status: 400 }
+            );
+        }
+
+        const stmt = db.prepare(`
+            DELETE FROM task
+            WHERE id = ?
+        `);
+        const result = stmt.run(
+            taskId
+        );
+
+
+        if ((result.changes ?? 0) === 0) {
+            return NextResponse.json(
+                { error: "削除対象のタスクが見つかりませんでした。" },
+                { status: 404 }
+            );
+        }
+
+        return NextResponse.json({
+            message: "更新しました。",
+        });
+    } catch (error) {
+        console.error("DELETE /api/tasks/[id] error:", error);
 
         return NextResponse.json(
             {
