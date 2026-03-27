@@ -1,4 +1,4 @@
-import { DatabaseSync } from "node:sqlite";
+import Database from "better-sqlite3";
 import path from "node:path";
 import fs from "node:fs";
 
@@ -9,12 +9,18 @@ if (!fs.existsSync(dbDir)) {
 }
 
 const dbPath = path.join(dbDir, "growry.sqlite");
-console.log("DB PATH:", dbPath);
 
-// Node標準のSQLite接続
-export const db = new DatabaseSync(dbPath);
+if (process.env.NODE_ENV !== "production") {
+    console.log("DB PATH:", dbPath);
+}
 
-// taskテーブル作成
+export const db = new Database(dbPath);
+
+// 🔥 追加
+db.exec("PRAGMA journal_mode = WAL;");
+db.exec("PRAGMA foreign_keys = ON;");
+
+// テーブル
 db.exec(`
   CREATE TABLE IF NOT EXISTS task (
     id INTEGER PRIMARY KEY AUTOINCREMENT,

@@ -1,0 +1,7 @@
+services:
+  growry:
+    build: .
+    container_name: growry
+    ports:
+      - "3000:3000"
+    restart: always
