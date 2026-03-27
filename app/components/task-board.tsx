@@ -106,7 +106,7 @@ export default function TaskBoard({
             return;
         }
 
-        setIsUpdateSubmitting(true);
+        setIsDeleteSubmitting(true);
         setMessage("");
 
         try {
@@ -132,7 +132,7 @@ export default function TaskBoard({
             closeModal();
             router.refresh();
         } catch (error) {
-            console.error("handleUpdate error:", error);
+            console.error("handleDelete error:", error);
             if (error instanceof Error) {
                 setMessage(`削除中にエラーが発生しました: ${error.message}`);
             } else {
@@ -276,7 +276,7 @@ export default function TaskBoard({
                                 type="button"
                                 className="secondaryButton"
                                 onClick={closeModal}
-                                disabled={isUpdateSubmitting}
+                                disabled={isUpdateSubmitting || isDeleteSubmitting}
                             >
                                 閉じる
                             </button>
@@ -284,9 +284,9 @@ export default function TaskBoard({
                                 type="button"
                                 className="taskButton"
                                 onClick={handleDelete}
-                                disabled={isUpdateSubmitting}
+                                disabled={isDeleteSubmitting}
                             >
-                                {isUpdateSubmitting ? "削除中..." : "削除"}
+                                {isDeleteSubmitting ? "削除中..." : "削除"}
                             </button>
                             <button
                                 type="button"
