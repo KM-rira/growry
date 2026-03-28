@@ -4,7 +4,10 @@
 # 軽量なNode.jsイメージ（サイズ削減）
 FROM node:20-alpine AS deps
 
-WORKDIR /app  # 作業ディレクトリ
+RUN apk add --no-cache python3 make g++
+
+# 作業ディレクトリ
+WORKDIR /app
 
 COPY package.json package-lock.json ./
 # 依存定義だけコピー（キャッシュ効かせるため）
