@@ -1,0 +1,33 @@
+# Git
+.git
+.gitignore
+
+# Node/Bun modules
+node_modules
+bun.lockb
+
+# Logs
+*.log
+
+# Env（※基本除外、必要ならコピーで対応）
+.env
+.env.*
+
+# Build artifacts（念のため）
+dist
+build
+.next
+.out
+
+# OS系
+.DS_Store
+
+# Docker関連（不要なら）
+docker-compose.yml
+
+# SQLite（※ケースによる）
+*.sqlite
+*.db
+
+# アップロードファイル（重要）
+uploadFiles/
