@@ -31,3 +31,8 @@ docker-compose.yml
 
 # アップロードファイル（重要）
 uploadFiles/
+
+# SQLite
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
