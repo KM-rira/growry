@@ -1,34 +1,19 @@
-import Database from "better-sqlite3";
-import path from "node:path";
-import fs from "node:fs";
+import { Pool } from "pg";
 
-const dbDir = path.join(process.cwd(), "db");
+let pool: Pool | null = null;
 
-if (!fs.existsSync(dbDir)) {
-    fs.mkdirSync(dbDir, { recursive: true });
+export function getPool() {
+    const databaseUrl = process.env.DATABASE_URL;
+
+    if (!databaseUrl) {
+        throw new Error("DATABASE_URL is not set");
+    }
+
+    if (!pool) {
+        pool = new Pool({
+            connectionString: databaseUrl,
+        });
+    }
+
+    return pool;
 }
-
-const dbPath = path.join(dbDir, "growry.sqlite");
-
-if (process.env.NODE_ENV !== "production") {
-    console.log("DB PATH:", dbPath);
-}
-
-export const db = new Database(dbPath);
-
-// 🔥 追加
-db.exec("PRAGMA journal_mode = WAL;");
-db.exec("PRAGMA foreign_keys = ON;");
-
-// テーブル
-db.exec(`
-  CREATE TABLE IF NOT EXISTS task (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    title TEXT NOT NULL,
-    detail TEXT,
-    status TEXT NOT NULL DEFAULT 'uncomplete',
-    updated_at TEXT NOT NULL,
-    created_at TEXT NOT NULL,
-    completed_at TEXT
-  )
-`);

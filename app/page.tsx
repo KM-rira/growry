@@ -1,5 +1,5 @@
 import { revalidatePath } from "next/cache";
-import { db } from "@/lib/db";
+import { getPool } from "@/lib/db";
 import TaskBoard from "@/app/components/task-board";
 
 export const dynamic = "force-dynamic";
@@ -20,14 +20,14 @@ async function createTask(formData: FormData) {
     const title = String(formData.get("title") ?? "").trim();
     if (!title) return;
 
-    const now = new Date().toLocaleString("ja-JP", {
-        timeZone: "Asia/Tokyo",
-    });
-
-    db.prepare(`
+    const pool = getPool();
+    await pool.query(
+        `
       INSERT INTO task (title, detail, status, updated_at, created_at, completed_at)
-      VALUES (?, ?, ?, ?, ?, ?)
-    `).run(title, "", "uncomplete", now, now, null);
+      VALUES ($1, $2, $3, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, $4)
+    `,
+        [title, "", "uncomplete", null]
+    );
 
     revalidatePath("/growry");
 }
@@ -38,31 +38,39 @@ function toTask(row: any): Task {
         title: String(row.title ?? ""),
         detail: row.detail == null ? null : String(row.detail),
         status: String(row.status ?? ""),
-        updated_at: String(row.updated_at ?? ""),
-        created_at: String(row.created_at ?? ""),
-        completed_at: String(row.completed_at ?? ""),
+        updated_at: row.updated_at == null ? "" : new Date(row.updated_at).toISOString(),
+        created_at: row.created_at == null ? "" : new Date(row.created_at).toISOString(),
+        completed_at:
+            row.completed_at == null ? null : new Date(row.completed_at).toISOString(),
     };
 }
 
-export default function Home() {
+export default async function Home() {
     console.log("PAGE DB READ");
 
-    const uncompletedRows = db.prepare(`
+    const pool = getPool();
+    const uncompletedResult = await pool.query(
+        `
       SELECT id, title, detail, status, updated_at, created_at, completed_at
       FROM task
-      WHERE status != ?
+      WHERE status <> $1
       ORDER BY created_at DESC
-    `).all("complete");
+    `,
+        ["complete"]
+    );
 
-    const completedRows = db.prepare(`
+    const completedResult = await pool.query(
+        `
       SELECT id, title, detail, status, updated_at, created_at, completed_at
       FROM task
-      WHERE status = ?
+      WHERE status = $1
       ORDER BY created_at DESC
-    `).all("complete");
+    `,
+        ["complete"]
+    );
 
-    const uncompletedTasks = uncompletedRows.map(toTask);
-    const completedTasks = completedRows.map(toTask);
+    const uncompletedTasks = uncompletedResult.rows.map(toTask);
+    const completedTasks = completedResult.rows.map(toTask);
 
     return (
         <main className="page">
