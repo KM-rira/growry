@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "db:init": "tsx scripts/init-db.ts"
+    "db:init": "node scripts/init-db.js"
   },
   "dependencies": {
     "better-sqlite3": "^12.8.0",
@@ -37,3 +37,4 @@
     "unrs-resolver"
   ]
 }
+
